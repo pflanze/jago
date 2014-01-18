@@ -61,6 +61,50 @@
        (iota 5)))
 
 
+(def (set-contains? s v)
+     (and (memq v s) #t))
+
+(def (set-add s v)
+     (cons v s))
+
+(def empty-set '())
+
+(def. (board.has-freedoms? b row col)
+
+  (let* ((me (.ref b row col))	 
+	 (cond-is-free
+	  (L (row col yes no continue)
+	     (if (and (internal-pos? row)
+		      (internal-pos? col))
+		 (let ((v (.ref b row col)))
+		   (xcase v
+			  ((none) (yes))
+			  ((white black)
+			   (if (eq? v me)
+			       (continue)
+			       (no)))))
+		 (no)))))
+    (letrec ((search
+	      (L (searched row col)
+		 (cond-is-free
+		  row (dec col) ;; west
+		  true/0 ;; yes
+		  (L ()
+		     (cond-is-free
+		      (dec row) col ;; north
+		      true/0
+		      (L ()
+			 (cond-is-free
+			  row (inc col) ;; east
+			  true/0
+			  (L ()
+			     (cond-is-free
+			      (inc row) col ;; south
+			      true/0
+			      false/0
+			      (L ()
+				 ))))))))))))))
+
 
 ;; ------- Round -------
 

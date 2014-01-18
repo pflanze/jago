@@ -32,13 +32,23 @@
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (+ col (* 5 row))))
 
-(def. (board.set! b row col #(player? v))
+(def. (board.set! b #(internal-pos? row) #(internal-pos? col) #(player? v))
   (vector-set! (.fields b) (+ col (* 5 row)) v))
 
 (def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player? v))
   (let ((b* (.copy b)))
     (board.set! b* row col v)
     b*))
+
+(def. (board.if-set b
+		    #(internal-pos? row)
+		    #(internal-pos? col)
+		    #(player? v)
+		    then
+		    else)
+  (xcase (.ref b row col)
+	 ((none) (then (.set b row col v)))
+	 ((white black) (else))))
 
 (def. (board.row b row)
   (map (L (col)
@@ -63,39 +73,52 @@
 	    ((white) 'black)
 	    ((black) 'white)))
 
-(def. (round.play r row col)
-     (round (.set (.board r) row col (.next-player r))
-	    (other-player (.next-player r)) ))
+(def. (round.if-play r row col then else)
+  (let ((current-player (.next-player r)))
+    (.if-set (.board r)
+	    row
+	    col
+	    current-player
+	    (L (b*)
+	       (then (round b* 
+			    (other-player current-player))))
+	    else)))
 
 ;; input / output
 
 
 ;; "1 4" ~> (let x 1)(let y 4)
-(def (parse-input str fn redo)
-     (def (invalid)
-	  (println "invalid input, try again")
-	  (redo))
+(def (if-parse-input str then els)
      (mcase (with-input-from-string str read-all)
 	    (`(`row `col)
 	     (if (and (user-pos? row)
 		      (user-pos? col))
-		 (fn row col)
-		 (invalid)))
+		 (then row col)
+		 (els)))
 	    (else
-	     (invalid))))
+	     (els))))
 
 (def (start-go)
      (read-line)
      (letrec ((loop
 	       (L (r)
 		  (println (.next-player r) ", place your stone (row col)")
-		  (let* ((line (read-line))
-			 (r* (parse-input line
-					  (L (row col)
-					     (.play r (dec row) (dec col))  )
-					  (C loop r))))
-		    (println "New board:")
-		    (pretty-print (.show (.board r*)))
-		    (loop r*)))))
+		  (let* ((line (read-line)))
+		    (if-parse-input
+		     line
+		     (L (row col)
+			(.if-play r
+				  (dec row)
+				  (dec col)
+				  (L (r*)
+				     (println "New board:")
+				     (pretty-print (.show (.board r*)))
+				     (loop r*))
+				  (L ()
+				     (println "Position already set.")
+				     (loop r))))
+		     (L ()
+			(println "invalid input, try again")
+			(loop r)))))))
        (loop (round (make-board) 'white))))
 

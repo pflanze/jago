@@ -104,5 +104,8 @@
       (i/load "lib/cj-sxml-serializer")	;;for debugging, sxml>>xml
       (i/load "lib/cj-path")))
 
+(i/load "enum")
+(i/load "easy")
+
 (if (file-exists? "main.scm")
     (i/load "main"))

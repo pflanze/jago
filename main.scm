@@ -40,12 +40,12 @@
     (board.set! b* row col v)
     b*))
 
-(def. (board.if-set b
-		    #(internal-pos? row)
-		    #(internal-pos? col)
-		    #(player? v)
-		    then
-		    else)
+(def. (board.if-set/emptycheck b
+			       #(internal-pos? row)
+			       #(internal-pos? col)
+			       #(player? v)
+			       then
+			       else)
   (xcase (.ref b row col)
 	 ((none) (then (.set b row col v)))
 	 ((white black) (else))))
@@ -75,14 +75,14 @@
 
 (def. (round.if-play r row col then else)
   (let ((current-player (.next-player r)))
-    (.if-set (.board r)
-	    row
-	    col
-	    current-player
-	    (L (b*)
-	       (then (round b* 
-			    (other-player current-player))))
-	    else)))
+    (.if-set/emptycheck (.board r)
+			row
+			col
+			current-player
+			(L (b*)
+			   (then (round b* 
+					(other-player current-player))))
+			else)))
 
 ;; input / output
 

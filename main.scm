@@ -32,6 +32,16 @@
     (board.set! b* x y v)
     b*))
 
+(def. (board.row b i)
+  (map (L (j)
+	  (.ref b j i))
+       (iota 5)))
+
+(def. (board.show b)
+  (map (L (i)
+	  (.row b i))
+       (iota 5)))
+
 ;; "1 4" ~> (let x 1)(let y 4)
 (def (f str fn)
      (let ((l (with-input-from-string str read-all)))
@@ -46,7 +56,7 @@
 			 (board* (f line (L (x y)
 					    (board.set board x y 'white)) )))
 		    (println "New board:")
-		    (write board*)
+		    (pretty-print (.show board*))
 		    (loop board*)))))
        (loop (make-board))))
 

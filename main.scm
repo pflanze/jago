@@ -29,11 +29,14 @@
 (def. (board.copy b)
      (_board (vector-copy (.fields b))))
 
+(def (board-pos->field-index row col)
+     (+ col (* 5 row)))
+
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
-  (vector-ref (.fields b) (+ col (* 5 row))))
+  (vector-ref (.fields b) (board-pos->field-index row col)))
 
 (def. (board.set! b #(internal-pos? row) #(internal-pos? col) #(player? v))
-  (vector-set! (.fields b) (+ col (* 5 row)) v))
+  (vector-set! (.fields b) (board-pos->field-index row col) v))
 
 (def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player? v))
   (let ((b* (.copy b)))
@@ -70,7 +73,6 @@
 (def empty-set '())
 
 (def. (board.has-freedoms? b row col)
-
   (let* ((me (.ref b row col))	 
 	 (cond-is-free
 	  (L (row col yes no continue)
@@ -86,24 +88,21 @@
 		 (no)))))
     (letrec ((search
 	      (L (searched row col)
-		 (cond-is-free
-		  row (dec col) ;; west
-		  true/0 ;; yes
-		  (L ()
-		     (cond-is-free
-		      (dec row) col ;; north
-		      true/0
-		      (L ()
-			 (cond-is-free
-			  row (inc col) ;; east
-			  true/0
-			  (L ()
-			     (cond-is-free
-			      (inc row) col ;; south
-			      true/0
-			      false/0
-			      (L ()
-				 ))))))))))))))
+		 (let ((index (board-pos->field-index row col)))
+		   (if (set-contains? searched index)
+		       #f
+		       (cond-is-free
+			row col
+			true/0
+			false/0 ;;XXXX
+			(L ()
+			   (let ((searched* (set-add searched index)))
+			     (or (search searched* row (dec col)) ;; west
+				 (search searched* (dec row) col) ;; north
+				 (search searched* row (inc col)) ;; east
+				 (search searched* (inc row) col) ;; south
+				 )))))))))
+      (search empty-set row col))))
 
 
 ;; ------- Round -------

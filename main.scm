@@ -3,6 +3,14 @@
 
 ;; ------ Board -------
 
+(def (user-pos? x)
+     (and (integer? x)
+	  (<= 1 x 5)))
+
+(def (internal-pos? x)
+     (and (integer? x)
+	  (<= 0 x 4)))
+
 (defenum player
   white black none)
 
@@ -21,13 +29,13 @@
 (def. (board.copy b)
      (_board (vector-copy (.fields b))))
 
-(def. (board.ref b row col)
+(def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (+ col (* 5 row))))
 
 (def. (board.set! b row col #(player? v))
   (vector-set! (.fields b) (+ col (* 5 row)) v))
 
-(def. (board.set b row col #(player? v))
+(def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player? v))
   (let ((b* (.copy b)))
     (board.set! b* row col v)
     b*))
@@ -63,9 +71,18 @@
 
 
 ;; "1 4" ~> (let x 1)(let y 4)
-(def (parse-input str fn)
-     (let ((l (with-input-from-string str read-all)))
-       (fn (car l) (cadr l))))
+(def (parse-input str fn redo)
+     (def (invalid)
+	  (println "invalid input, try again")
+	  (redo))
+     (mcase (with-input-from-string str read-all)
+	    (`(`row `col)
+	     (if (and (user-pos? row)
+		      (user-pos? col))
+		 (fn row col)
+		 (invalid)))
+	    (else
+	     (invalid))))
 
 (def (start-go)
      (read-line)
@@ -75,7 +92,8 @@
 		  (let* ((line (read-line))
 			 (r* (parse-input line
 					  (L (row col)
-					     (.play r (dec row) (dec col))  ) )))
+					     (.play r (dec row) (dec col))  )
+					  (C loop r))))
 		    (println "New board:")
 		    (pretty-print (.show (.board r*)))
 		    (loop r*)))))

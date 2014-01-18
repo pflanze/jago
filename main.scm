@@ -26,6 +26,15 @@
 (def (make-board)
      (_board (make-vector 25 'none)))
 
+(def. (board.show b)
+  (map (L (row)
+	  (.row b row))
+       (iota 5)))
+
+(def (make-board* m)
+     (_board (list->vector (apply append m))))
+
+
 (def. (board.copy b)
      (_board (vector-copy (.fields b))))
 
@@ -58,11 +67,6 @@
 	  (.ref b row col))
        (iota 5)))
 
-(def. (board.show b)
-  (map (L (row)
-	  (.row b row))
-       (iota 5)))
-
 
 (def (set-contains? s v)
      (and (memq v s) #t))
@@ -86,6 +90,7 @@
 			       (continue)
 			       (no)))))
 		 (no)))))
+    (assert (not (eq? me 'none)))
     (letrec ((search
 	      (L (searched row col)
 		 (let ((index (board-pos->field-index row col)))
@@ -104,6 +109,36 @@
 				 )))))))))
       (search empty-set row col))))
 
+
+(TEST
+ > (def b (make-board* '((none  none  none  none  none)
+			 (white white black none  none)
+			 (none  none  black none  none)
+			 (none  none  none  black black)
+			 (none  none  none  black white))))
+ > (.has-freedoms? b 4 4)
+ #f
+ > (.has-freedoms? b 3 4)
+ #t
+ > (.has-freedoms? b 3 3)
+ #t
+ > (.has-freedoms? b 1 2)
+ #t
+ > (def b (make-board* '((none  none  none  none  none)
+			 (none  black black black none)
+			 (none  black white white white)
+			 (none  black white black black)
+			 (none  black white black white))))
+ > (.has-freedoms? b 4 2)
+ #t
+ > (def b (make-board* '((none  none  none  none  none)
+			 (none  black black black black)
+			 (none  black white white white)
+			 (none  black white black black)
+			 (none  black white black white))))
+ > (.has-freedoms? b 4 2)
+ #f
+ )
 
 ;; ------- Round -------
 

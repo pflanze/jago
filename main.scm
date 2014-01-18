@@ -51,10 +51,10 @@
      (read-line)
      (letrec ((loop
 	       (L (board)
-		  (println "Place your stone (x y)")
+		  (println "Place your stone (y x)")
 		  (let* ((line (read-line))
-			 (board* (f line (L (x y)
-					    (board.set board x y 'white)) )))
+			 (board* (f line (L (y x)
+					    (board.set board (dec x) (dec y) 'white)) )))
 		    (println "New board:")
 		    (pretty-print (.show board*))
 		    (loop board*)))))

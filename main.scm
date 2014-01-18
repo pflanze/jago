@@ -18,11 +18,20 @@
 (def (make-board)
      (_board (make-vector 25 'empty)))
 
+(def. (board.copy b)
+     (_board (vector-copy (.fields b))))
+
 (def. (board.ref b x y)
   (vector-ref (.fields b) (+ x (* 5 y))))
 
 (def. (board.set! b x y #(allocation? v))
   (vector-set! (.fields b) (+ x (* 5 y)) v))
+
+(def. (board.set b x y #(allocation? v))
+  (let ((b* (.copy b)))
+    (board.set! b* x y v)
+    b*))
+
 
 (def (loop)
   (println "What's your name?")

@@ -138,6 +138,13 @@
 			 (none  black white black white))))
  > (.has-freedoms? b 4 2)
  #f
+ > (def b (make-board* '((none  none  none  none  none)
+			 (none  black black black black)
+			 (none  black white white white)
+			 (none  black white black black)
+			 (none  black white none  white))))
+ > (.has-freedoms? b 4 2)
+ #t
  )
 
 ;; ------- Round -------

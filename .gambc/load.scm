@@ -88,21 +88,22 @@
 
       (c/load "lib/u8-parse")
 
-      (c/load "lib/cj-c-util")
-      (c/load "lib/cj-gambit-sys")
-      (c/load "lib/posix/cj-c-errno")
-      (c/load "lib/posix/cj-posix")
+      ;; (c/load "lib/cj-c-util")
+      ;; (c/load "lib/cj-gambit-sys")
+      ;; (c/load "lib/posix/cj-c-errno")
+      ;; (c/load "lib/posix/cj-posix")
 
-      (c/load "lib/cj-io-util")
+      ;; (c/load "lib/cj-io-util")
 
-      (c/load "lib/cj-posixpath")
+      ;; (c/load "lib/cj-posixpath")
 
-      (i/load "lib/cj-sxml-io")
-      (i/load "lib/cj-sxml")
-      (i/load "lib/cj-ssxpath")
-      (i/load "lib/domain-name")
-      (i/load "lib/cj-sxml-serializer")	;;for debugging, sxml>>xml
-      (i/load "lib/cj-path")))
+      ;; (i/load "lib/cj-sxml-io")
+      ;; (i/load "lib/cj-sxml")
+      ;; (i/load "lib/cj-ssxpath")
+      ;; (i/load "lib/domain-name")
+      ;; (i/load "lib/cj-sxml-serializer")	;;for debugging, sxml>>xml
+      ;; (i/load "lib/cj-path")
+      ))
 
 (i/load "enum")
 (i/load "easy")

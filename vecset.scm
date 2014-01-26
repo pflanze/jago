@@ -12,6 +12,7 @@
       (def (set-for-each proc s)
 	   (for-each proc s))
       (def set-add! set-add)
+      ;; ^ still returns the value to be used as the new set
       (def (make-set _maxsize)
 	   empty-set))
     (begin
@@ -20,6 +21,7 @@
 	   (vector-ref s v))
       (def (set-add! s v)
 	   (vector-set! s v #t)
+	   ;; still return the value to be used as the new set:
 	   s)
       (def (set-for-each proc s)
 	   (def len (vector-length s))

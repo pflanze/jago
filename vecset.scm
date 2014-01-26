@@ -1,4 +1,4 @@
-(IF #f
+(IF #t
     (begin
       ;; functional list based implementation
       (def (set-contains? s v)

@@ -29,7 +29,15 @@
 	  (.row b row))
        (iota board-dim)))
 
-(def (board m)
+(def (2d-list-square? v)
+     (and (list? v)
+	  (let ((l (length v)))
+	    (every (both list?
+			 (lambda (v)
+			   (= (length v) l)))
+		   v))))
+
+(def (board #(2d-list-square? m))
      (_board (list->vector (apply append m))))
 
 

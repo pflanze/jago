@@ -43,7 +43,7 @@
       (c/load "lib/cj-alist")
       (c/load "lib/check-equal")
 
-      (c/load "lib/define-module")
+      ;; (c/load "lib/define-module")
 
       (c/load "lib/cj-source-2")
       (c/load "lib/cj-match")

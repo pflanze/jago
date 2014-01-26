@@ -1,6 +1,6 @@
 ;; ------- Round -------
 
-(defstruct round
+(defstruct Round
   #(board? board)
   #(player? next-player))
 
@@ -9,14 +9,14 @@
 	    ((white) 'black)
 	    ((black) 'white)))
 
-(def. (round.if-play r row col then else)
+(def. (Round.if-play r row col then else)
   (let ((current-player (.next-player r)))
     (.if-set/emptycheck (.board r)
 			row
 			col
 			current-player
 			(L (b*)
-			   (then (round b* 
+			   (then (Round b* 
 					(other-player current-player))))
 			else)))
 
@@ -56,5 +56,5 @@
 		     (L ()
 			(println "invalid input, try again")
 			(loop r)))))))
-       (loop (round (make-board) 'white))))
+       (loop (Round (make-board) 'white))))
 

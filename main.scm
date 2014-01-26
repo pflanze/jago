@@ -31,7 +31,7 @@
 	  (.row b row))
        (iota 5)))
 
-(def (make-board* m)
+(def (board m)
      (_board (list->vector (apply append m))))
 
 
@@ -111,11 +111,11 @@
 
 
 (TEST
- > (def b (make-board* '((none  none  none  none  none)
-			 (white white black none  none)
-			 (none  none  black none  none)
-			 (none  none  none  black black)
-			 (none  none  none  black white))))
+ > (def b (board '((none  none  none  none  none)
+		   (white white black none  none)
+		   (none  none  black none  none)
+		   (none  none  none  black black)
+		   (none  none  none  black white))))
  > (.has-freedoms? b 4 4)
  #f
  > (.has-freedoms? b 3 4)
@@ -124,25 +124,25 @@
  #t
  > (.has-freedoms? b 1 2)
  #t
- > (def b (make-board* '((none  none  none  none  none)
-			 (none  black black black none)
-			 (none  black white white white)
-			 (none  black white black black)
-			 (none  black white black white))))
+ > (def b (board '((none  none  none  none  none)
+		   (none  black black black none)
+		   (none  black white white white)
+		   (none  black white black black)
+		   (none  black white black white))))
  > (.has-freedoms? b 4 2)
  #t
- > (def b (make-board* '((none  none  none  none  none)
-			 (none  black black black black)
-			 (none  black white white white)
-			 (none  black white black black)
-			 (none  black white black white))))
+ > (def b (board '((none  none  none  none  none)
+		   (none  black black black black)
+		   (none  black white white white)
+		   (none  black white black black)
+		   (none  black white black white))))
  > (.has-freedoms? b 4 2)
  #f
- > (def b (make-board* '((none  none  none  none  none)
-			 (none  black black black black)
-			 (none  black white white white)
-			 (none  black white black black)
-			 (none  black white none  white))))
+ > (def b (board '((none  none  none  none  none)
+		   (none  black black black black)
+		   (none  black white white white)
+		   (none  black white black black)
+		   (none  black white none  white))))
  > (.has-freedoms? b 4 2)
  #t
  )

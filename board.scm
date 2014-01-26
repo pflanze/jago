@@ -117,33 +117,34 @@
   (let* ((me (.ref b row col))	 
 	 (cond-is-free
 	  (L (row col yes no continue)
-	     (if (and (internal-pos? row)
-		      (internal-pos? col))
-		 (let ((v (.ref b row col)))
-		   (xcase v
-			  ((none) (yes))
-			  ((white black)
-			   (if (eq? v me)
-			       (continue)
-			       (no)))))
-		 (no)))))
+	     (let ((v (.ref b row col)))
+	       (xcase v
+		      ((none) (yes))
+		      ((white black)
+		       (if (eq? v me)
+			   (continue)
+			   (no))))))))
     (assert (not (eq? me 'none)))
     (letrec ((search
+	      ;; return false if position has been found to not have
+	      ;; freedoms
 	      (L (searched row col)
-		 (let ((index (board-pos->field-index row col)))
-		   (if (set-contains? searched index)
-		       #f
-		       (cond-is-free
-			row col
-			true/0
-			false/0 ;;XXXX
-			(L ()
-			   (let ((searched* (set-add! searched index)))
-			     (or (search searched* row (dec col)) ;; west
-				 (search searched* (dec row) col) ;; north
-				 (search searched* row (inc col)) ;; east
-				 (search searched* (inc row) col) ;; south
-				 )))))))))
+		 (and (internal-pos? row)
+		      (internal-pos? col)
+		      (let ((index (board-pos->field-index row col)))
+			(if (set-contains? searched index)
+			    #f
+			    (cond-is-free
+			     row col
+			     true/0
+			     false/0 ;;XXXX
+			     (L ()
+				(let ((searched* (set-add! searched index)))
+				  (or (search searched* row (dec col)) ;; west
+				      (search searched* (dec row) col) ;; north
+				      (search searched* row (inc col)) ;; east
+				      (search searched* (inc row) col) ;; south
+				      ))))))))))
       (search (make-set) row col))))
 
 

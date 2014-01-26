@@ -3,20 +3,22 @@
 
 ;; ------ Board -------
 
+(def board-dim 5)
+
 (def (user-pos? x)
      (and (integer? x)
-	  (<= 1 x 5)))
+	  (<= 1 x board-dim)))
 
 (def (internal-pos? x)
      (and (integer? x)
-	  (<= 0 x 4)))
+	  (<= 0 x (dec board-dim))))
 
 (defenum player
   white black none)
 
 (def (board-vector? x)
      (and (vector? x)
-	  (= (vector-length x) 25)
+	  (= (vector-length x) (square board-dim))
 	  (vector-every player? x)))
 
 (defstruct board
@@ -24,12 +26,12 @@
   #(board-vector? fields))
 
 (def (make-board)
-     (_board (make-vector 25 'none)))
+     (_board (make-vector (square board-dim) 'none)))
 
 (def. (board.show b)
   (map (L (row)
 	  (.row b row))
-       (iota 5)))
+       (iota board-dim)))
 
 (def (board m)
      (_board (list->vector (apply append m))))
@@ -39,7 +41,7 @@
      (_board (vector-copy (.fields b))))
 
 (def (board-pos->field-index row col)
-     (+ col (* 5 row)))
+     (+ col (* board-dim row)))
 
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (board-pos->field-index row col)))
@@ -65,7 +67,7 @@
 (def. (board.row b row)
   (map (L (col)
 	  (.ref b row col))
-       (iota 5)))
+       (iota board-dim)))
 
 
 (def (set-contains? s v)

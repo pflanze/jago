@@ -74,13 +74,44 @@
        (iota board-dim)))
 
 
-(def (set-contains? s v)
-     (and (memq v s) #t))
+(IF #f
+    (begin
+      ;; functional list based implementation
+      (def (set-contains? s v)
+	   (and (memq v s) #t))
 
-(def (set-add s v)
-     (cons v s))
+      (def (set-add s v)
+	   (cons v s))
 
-(def empty-set '())
+      (def empty-set '())
+
+      (def (set-for-each proc s)
+	   (for-each proc s))
+      (def set-add! set-add)
+      (def (make-set) empty-set))
+    (begin
+      ;; destructive bit-vector based implementation
+      (def (set-contains? s v)
+	   (vector-ref s v))
+      (def (set-add! s v)
+	   (vector-set! s v #t)
+	   s)
+      (def (set-for-each proc s)
+	   (for..< (i 0 (vector-length s))
+		   (if (vector-ref s i)
+		       (proc i))))
+      (def (make-set)
+	   (make-vector (square board-dim) #f))))
+
+(TEST
+ > (def s (make-set))
+ > (set-add! s 5)
+ > (set-add! s 6)
+ > (def l '())
+ > (set-for-each (C push! l _) s)
+ > l
+ (6 5)
+ )
 
 (def. (board.has-freedoms? b row col)
   (let* ((me (.ref b row col))	 
@@ -107,13 +138,13 @@
 			true/0
 			false/0 ;;XXXX
 			(L ()
-			   (let ((searched* (set-add searched index)))
+			   (let ((searched* (set-add! searched index)))
 			     (or (search searched* row (dec col)) ;; west
 				 (search searched* (dec row) col) ;; north
 				 (search searched* row (inc col)) ;; east
 				 (search searched* (inc row) col) ;; south
 				 )))))))))
-      (search empty-set row col))))
+      (search (make-set) row col))))
 
 
 (TEST

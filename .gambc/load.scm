@@ -107,6 +107,7 @@
 
 (i/load "enum")
 (i/load "easy")
+(i/load "board")
 
 (if (file-exists? "main.scm")
     (i/load "main"))

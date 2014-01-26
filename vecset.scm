@@ -32,12 +32,13 @@
 	   (make-vector maxsize #f))))
 
 (TEST
- > (def s (make-set 10))
- > (set-add! s 5)
- > (set-add! s 6)
+ > (def s
+	(chain (make-set 10)
+	       (set-add! 5)
+	       (set-add! 6)))
  > (def l '())
  > (set-for-each (C push! l _) s)
- > l
- (6 5)
+ > (sort l <)
+ (5 6)
  )
 

@@ -137,7 +137,7 @@
 			    (cond-is-free
 			     row col
 			     true/0
-			     false/0 ;;XXXX
+			     false/0
 			     (L ()
 				(let ((searched* (set-add! searched index)))
 				  (or (search searched* row (dec col)) ;; west

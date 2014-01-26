@@ -1,6 +1,3 @@
-(def (vector-every fn v)
-     (every fn (vector->list v)))
-
 ;; ------ Board -------
 
 (def board-dim 5)

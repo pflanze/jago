@@ -33,8 +33,8 @@
      (and (list? v)
 	  (let ((l (length v)))
 	    (every (both list?
-			 (lambda (v)
-			   (= (length v) l)))
+			 (L (v)
+			    (= (length v) l)))
 		   v))))
 
 (def (board #(2d-list-square? m))

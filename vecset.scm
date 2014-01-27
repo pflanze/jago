@@ -9,6 +9,8 @@
 
       (def empty-set '())
 
+      (def set? list?)
+
       (def (set-for-each proc s)
 	   (for-each proc s))
       (def set-add! set-add)
@@ -23,6 +25,9 @@
 	   (vector-set! s v #t)
 	   ;; still return the value to be used as the new set:
 	   s)
+
+      (def set? vector?) ;; size? well.
+
       (def (set-for-each proc s)
 	   (def len (vector-length s))
 	   (for..< (i 0 len)

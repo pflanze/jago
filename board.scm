@@ -50,14 +50,14 @@
 (def. (board.copy b)
      (_board (vector-copy (.fields b))))
 
-(def (board-pos->field-index row col)
+(def (board-position->index row col)
      (+ col (* board-dim row)))
 
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
-  (vector-ref (.fields b) (board-pos->field-index row col)))
+  (vector-ref (.fields b) (board-position->index row col)))
 
 (def. (board.set! b #(internal-pos? row) #(internal-pos? col) #(player-or-none? v))
-  (vector-set! (.fields b) (board-pos->field-index row col) v))
+  (vector-set! (.fields b) (board-position->index row col) v))
 
 (def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player-or-none? v))
   (let ((b* (.copy b)))
@@ -101,7 +101,7 @@
 		  (L (searched row col)
 		     (and (internal-pos? row)
 			  (internal-pos? col)
-			  (let ((index (board-pos->field-index row col)))
+			  (let ((index (board-position->index row col)))
 			    (if (set-contains? searched index)
 				#f
 				(cond-is-free

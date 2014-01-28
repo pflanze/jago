@@ -13,6 +13,11 @@
 
       (def (set-for-each proc s)
 	   (for-each proc s))
+      (def (_set->list s)
+	   ;;(reverse s)
+	   s)
+      (def set->sorted-list
+	   (compose (C sort _ <) _set->list))
       (def set-add! set-add)
       ;; ^ still returns the value to be used as the new set
       (def (make-set _maxsize)
@@ -33,6 +38,12 @@
 	   (for..< (i 0 len)
 		   (if (vector-ref s i)
 		       (proc i))))
+      (def (set->sorted-list s)
+	   (def l '())
+	   (set-for-each (L (i)
+			    (push! l i))
+			 s)
+	   (reverse l))
       (def (make-set maxsize)
 	   (make-vector maxsize #f))))
 
@@ -44,6 +55,14 @@
  > (def l '())
  > (set-for-each (C push! l _) s)
  > (sort l <)
+ (5 6)
+ > (set->sorted-list s)
+ (5 6)
+ > (def s
+	(chain (make-set 10)
+	       (set-add! 6)
+	       (set-add! 5)))
+ > (set->sorted-list s)
  (5 6)
  )
 

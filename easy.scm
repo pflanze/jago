@@ -14,6 +14,8 @@
 (define-macro* (defenum name . args)
   `(define-enum ,name ,@args))
 
+(define-macro* (defmacro . args)
+  `(define-macro* ,@args))
 
 ;; lib
 
@@ -50,7 +52,7 @@
  #t
  )
 
-(define-macro* (-> pred expr)
+(defmacro (-> pred expr)
   (with-gensym V
 	       `(let ((,V ,expr))
 		  (if (,pred ,V) ,V

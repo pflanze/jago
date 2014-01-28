@@ -10,12 +10,18 @@
 	  (<= 0 x (dec board-dim))))
 
 (defenum player
-  white black none)
+  white black)
+
+(defenum none
+  none)
+
+(def player-or-none? (either player? none?))
+
 
 (def (board-vector? x)
      (and (vector? x)
 	  (= (vector-length x) (square board-dim))
-	  (vector-every player? x)))
+	  (vector-every player-or-none? x)))
 
 (defstruct board
   constructor-name: _board
@@ -50,10 +56,10 @@
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (board-pos->field-index row col)))
 
-(def. (board.set! b #(internal-pos? row) #(internal-pos? col) #(player? v))
+(def. (board.set! b #(internal-pos? row) #(internal-pos? col) #(player-or-none? v))
   (vector-set! (.fields b) (board-pos->field-index row col) v))
 
-(def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player? v))
+(def. (board.set b #(internal-pos? row) #(internal-pos? col) #(player-or-none? v))
   (let ((b* (.copy b)))
     (board.set! b* row col v)
     b*))

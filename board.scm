@@ -104,7 +104,14 @@
 			  ((white black)
 			   (if (eq? v me)
 			       (continue)
-			       (no))))))))
+			       (no)))))))
+	     (if-fst/pass
+	      (L (vals f)
+		 (letv ((done? state) vals)
+		       (if done?
+			   vals
+			   (f state))))))
+	
 	(letrec ((search
 		  ;; return false if position has been found to not have
 		  ;; freedoms
@@ -119,13 +126,13 @@
 				(C values #t searched)
 				(C values #f searched)
 				(L ()
-				   (let ((searched* (set-add! searched index)))
-				     (or-fst
-				      (search searched* row (dec col)) ;; west
-				      (search searched* (dec row) col) ;; north
-				      (search searched* row (inc col)) ;; east
-				      (search searched* (inc row) col) ;; south
-				      ))))))
+				   (LA if-fst/pass
+				       (values #f (set-add! searched index))
+				       (C search _ row (dec col)) ;; west
+				       (C search _ (dec row) col) ;; north
+				       (C search _ row (inc col)) ;; east
+				       (C search _ (inc row) col) ;; south
+				       )))))
 			 (values #f searched)))))
 	  (search (make-set (square board-dim)) row col)))))
 

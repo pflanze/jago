@@ -50,19 +50,35 @@
 (def. (board.copy b)
      (_board (vector-copy (.fields b))))
 
+
+(def board-index? (both natural0? (C < _ (square board-dim))))
+
+(def (board-index->position #(board-index? i))
+     (list (quotient i board-dim)
+	   (modulo i board-dim)))
+
 (def (board-position->index row col)
      (+ col (* board-dim row)))
 
-(def (board-positions->indexes l)
-     (fold-right (L (ps l*)
-		    (mcase ps
-			   (`(`row `col)
-			    (cons (board-position->index row col) l*))))
-		 '()
-		 l))
+(TEST
+ > (def (t row col)
+	(equal? (board-index->position (board-position->index row col))
+		(list row col)))
+ > (every t
+	  '(0 0 1 1 4 4)
+	  '(0 1 3 4 0 4))
+ #t)
 
-(def board-positions->sorted-indexes
-     (compose (C sort _ <) board-positions->indexes))
+;; (def (board-positions->indexes l)
+;;      (fold-right (L (ps l*)
+;; 		    (mcase ps
+;; 			   (`(`row `col)
+;; 			    (cons (board-position->index row col) l*))))
+;; 		 '()
+;; 		 l))
+
+;; (def board-positions->sorted-indexes
+;;      (compose (C sort _ <) board-positions->indexes))
 
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (board-position->index row col)))
@@ -91,57 +107,110 @@
        (iota board-dim)))
 
 
-(def. (board.freedoms b
-		      #(internal-pos? row)
-		      #(internal-pos? col)
-		      #(player? me))
-  (-> (values-of boolean? set?)
-      (let* ((cond-is-free
-	      (L (row col yes no continue)
-		 (let ((v (.ref b row col)))
-		   (xcase v
-			  ((none) (yes))
-			  ((white black)
-			   (if (eq? v me)
-			       (continue)
-			       (no)))))))
-	     (if-fst/pass
-	      (L (vals f)
-		 (letv ((done? state) vals)
-		       (if done?
-			   vals
-			   (f state))))))
-	
-	(letrec ((search
-		  ;; return false if position has been found to not have
-		  ;; freedoms
-		  (L (searched row col)
-		     (if (and (internal-pos? row)
-			      (internal-pos? col))
-			 (let ((index (board-position->index row col)))
-			   (if (set-contains? searched index)
-			       (values #f searched)
-			       (cond-is-free
-				row col
-				(C values #t searched)
-				(C values #f searched)
-				(L ()
-				   (LA if-fst/pass
-				       (values #f (set-add! searched index))
-				       (C search _ row (dec col)) ;; west
-				       (C search _ (dec row) col) ;; north
-				       (C search _ row (inc col)) ;; east
-				       (C search _ (inc row) col) ;; south
-				       )))))
-			 (values #f searched)))))
-	  (search (make-set (square board-dim)) row col)))))
+;; >> is part of the concept of monads, and chains two actions,
+;; creating a new combined action. search>> is our >> for search
+;; actions.
+
+;; We want search actions to have two features: the ability to
+;; shortcut evaluation (call |found|), and to pass on ("threading") of
+;; the |searched| set (it is passed to |notfound|, for continuing the
+;; search or to hand out as result).  We define a search action as a
+;; function taking (searched found notfound) and tail-calling either
+;; found or notfound (continuation-passing style).
+
+(def (search>> a b)
+     (L (searched found notfound)
+	;; search using a
+	(a searched
+	   ;; if found, no need to deal with b
+	   found
+	   ;; if not found, we will search using b
+	   (L (searched*)
+	      (b searched* found notfound)))))
+
+;; (Note that search>> is independent from whether found takes 0 or 1
+;; arguments (or really what arguments either of found or notfound
+;; take).)
+
+;; |LA| (a macro) takes the first argument as a function and generates
+;; code that applies it pair-wise, Left-Associative, to the remaining
+;; arguments:
+(TEST
+ > (expansion#LA search>>
+		 (search-free row (dec col))
+		 (search-free (dec row) col)
+		 (search-free row (inc col))
+		 (search-free (inc row) col))
+ (search>> (search>> (search>> (search-free row (dec col))
+			       (search-free (dec row) col))
+		     (search-free row (inc col)))
+	   (search-free (inc row) col)))
+
+
+(def. (board.if-has-freedoms b
+			     #(internal-pos? row)
+			     #(internal-pos? col)
+			     #(player? me)
+			     yes/0
+			     no/1 ;; receives set of captured positions
+			     )
+  (let* ((cond-free
+	  (L (row col yes no continue)
+	     (let ((v (.ref b row col)))
+	       (xcase v
+		      ((none) (yes))
+		      ((white black)
+		       (if (eq? v me)
+			   (continue)
+			   (no))))))))
+		
+    (letrec
+	((search-free
+	  (L (row col)
+	     ;; a search action
+	     (L (searched found/0 notfound/1)			
+		(if (and (internal-pos? row)
+			 (internal-pos? col))
+		    (let ((index (board-position->index row col)))
+		      (if (set-contains? searched index)
+			  (notfound/1 searched)
+			  (cond-free row col
+				     found/0
+				     (C notfound/1 searched)
+				     (&
+				      ((LA search>>
+					   (search-free row (dec col))
+					   (search-free (dec row) col)
+					   (search-free row (inc col))
+					   (search-free (inc row) col))
+				       (set-add! searched index)
+				       found/0
+				       notfound/1)))))
+		    (notfound/1 searched))))))
+	  
+      ((search-free row col)
+       (make-set (square board-dim))
+       yes/0
+       no/1))))
+
 
 (def. (board.has-freedoms? b row col)
-  (letv ((has? set) (board.freedoms b row col (.ref b row col)))
-	has?))
+  (board.if-has-freedoms b row col (.ref b row col)
+			 true/0
+			 false/1))
 
 
 (TEST
+ > (def (free? b row col player)
+	(if (eq? player (.ref b row col))
+	    (.if-has-freedoms b row col player
+			      (& 'free)
+			      (L (captured)
+				 (cons 'captured
+				       (map board-index->position
+					    (set->sorted-list captured)))))
+	    'wrong-player))
+ 
  ;;                 0     1     2     3     4
  > (def b (board '((none  none  none  none  none)     ;; 0
 		   (white white black none  none)     ;; 1
@@ -152,37 +221,35 @@
  #f
  > (.has-freedoms? b 3 4)
  #t
- > (.has-freedoms? b 3 3)
- #t
- > (.has-freedoms? b 1 2)
- #t
+ > (free? b 4 4 'white)
+ (captured (4 4))
+ > (free? b 3 4 'black)
+ free
+ > (free? b 3 3 'black)
+ free
+ > (free? b 1 2 'black)
+ free
  > (def b (board '((none  none  none  none  none)
 		   (none  black black black none)
 		   (none  black white white white)
 		   (none  black white black black)
 		   (none  black white black white))))
- > (.has-freedoms? b 4 2)
- #t
+ > (free? b 4 2 'white)
+ free
  > (def b (board '((none  none  none  none  none)
 		   (none  black black black black)
 		   (none  black white white white)
 		   (none  black white black black)
 		   (none  black white black white))))
- > (.has-freedoms? b 4 2)
- #f
- > (equal? (set->sorted-list (snd (.freedoms b 4 2 'white)))
-	   (board-positions->sorted-indexes
-	    '((2 2) (2 3) (2 4) (3 2) (4 2))))
- #t
+ > (free? b 4 2 'white)
+ (captured (2 2) (2 3) (2 4) (3 2) (4 2))
  > (def b (board '((none  none  none  none  none)
 		   (none  black black black black)
 		   (none  black white white white)
 		   (none  black white black black)
 		   (none  black white none  white))))
- > (.has-freedoms? b 4 2)
- #t
- ;; > (set->sorted-list (snd (.freedoms b 4 2 'white)))
- ;; (22) ;; well undefined in #t cases
+ > (free? b 4 2 'white)
+ free
  )
 
 

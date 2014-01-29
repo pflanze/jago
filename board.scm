@@ -53,6 +53,17 @@
 (def (board-position->index row col)
      (+ col (* board-dim row)))
 
+(def (board-positions->indexes l)
+     (fold-right (L (ps l*)
+		    (mcase ps
+			   (`(`row `col)
+			    (cons (board-position->index row col) l*))))
+		 '()
+		 l))
+
+(def board-positions->sorted-indexes
+     (compose (C sort _ <) board-positions->indexes))
+
 (def. (board.ref b #(internal-pos? row) #(internal-pos? col))
   (vector-ref (.fields b) (board-position->index row col)))
 
@@ -80,12 +91,12 @@
        (iota board-dim)))
 
 
-(def. (board.has-freedoms? b
-			   #(internal-pos? row)
-			   #(internal-pos? col))
-  (-> boolean?
-      (let* ((me (.ref b row col))
-	     (cond-is-free
+(def. (board.freedoms b
+		      #(internal-pos? row)
+		      #(internal-pos? col)
+		      #(player? me))
+  (-> (values-of boolean? set?)
+      (let* ((cond-is-free
 	      (L (row col yes no continue)
 		 (let ((v (.ref b row col)))
 		   (xcase v
@@ -94,36 +105,42 @@
 			   (if (eq? v me)
 			       (continue)
 			       (no))))))))
-	(assert (not (eq? me 'none)))
 	(letrec ((search
 		  ;; return false if position has been found to not have
 		  ;; freedoms
 		  (L (searched row col)
-		     (and (internal-pos? row)
-			  (internal-pos? col)
-			  (let ((index (board-position->index row col)))
-			    (if (set-contains? searched index)
-				#f
-				(cond-is-free
-				 row col
-				 true/0
-				 false/0
-				 (L ()
-				    (let ((searched* (set-add! searched index)))
-				      (or (search searched* row (dec col)) ;; west
-					  (search searched* (dec row) col) ;; north
-					  (search searched* row (inc col)) ;; east
-					  (search searched* (inc row) col) ;; south
-					  ))))))))))
+		     (if (and (internal-pos? row)
+			      (internal-pos? col))
+			 (let ((index (board-position->index row col)))
+			   (if (set-contains? searched index)
+			       (values #f searched)
+			       (cond-is-free
+				row col
+				(C values #t searched)
+				(C values #f searched)
+				(L ()
+				   (let ((searched* (set-add! searched index)))
+				     (or-fst
+				      (search searched* row (dec col)) ;; west
+				      (search searched* (dec row) col) ;; north
+				      (search searched* row (inc col)) ;; east
+				      (search searched* (inc row) col) ;; south
+				      ))))))
+			 (values #f searched)))))
 	  (search (make-set (square board-dim)) row col)))))
+
+(def. (board.has-freedoms? b row col)
+  (letv ((has? set) (board.freedoms b row col (.ref b row col)))
+	has?))
 
 
 (TEST
- > (def b (board '((none  none  none  none  none)
-		   (white white black none  none)
-		   (none  none  black none  none)
-		   (none  none  none  black black)
-		   (none  none  none  black white))))
+ ;;                 0     1     2     3     4
+ > (def b (board '((none  none  none  none  none)     ;; 0
+		   (white white black none  none)     ;; 1
+		   (none  none  black none  none)     ;; 2 
+		   (none  none  none  black black)    ;; 3
+		   (none  none  none  black white)))) ;; 4
  > (.has-freedoms? b 4 4)
  #f
  > (.has-freedoms? b 3 4)
@@ -146,6 +163,10 @@
 		   (none  black white black white))))
  > (.has-freedoms? b 4 2)
  #f
+ > (equal? (set->sorted-list (snd (.freedoms b 4 2 'white)))
+	   (board-positions->sorted-indexes
+	    '((2 2) (2 3) (2 4) (3 2) (4 2))))
+ #t
  > (def b (board '((none  none  none  none  none)
 		   (none  black black black black)
 		   (none  black white white white)
@@ -153,5 +174,8 @@
 		   (none  black white none  white))))
  > (.has-freedoms? b 4 2)
  #t
+ ;; > (set->sorted-list (snd (.freedoms b 4 2 'white)))
+ ;; (22) ;; well undefined in #t cases
  )
+
 

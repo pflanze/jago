@@ -65,3 +65,42 @@
  #(error "value fails to meet predicate:" "5")
  )
 
+
+;; better names, ok?
+(define (id x) x) ;; == identity
+(defmacro (let-gensym . args)
+  `(with-gensym ,@args))
+(defmacro (let-gensyms . args)
+  `(with-gensyms ,@args))
+
+
+;; like fold-right/last but do not take a tail
+(def (fold-right/last* fn fnlast lis)
+     (let rec ((lis lis))
+       (let-pair
+	((a lis*) lis)
+	(if (null? lis*) (fnlast a) (fn a (rec lis*))))))
+
+(def (or-fst-expand es)
+     (fold-right/last*
+      (L (e rest)
+	 (let-gensym
+	  V
+	  `(let ((,V ,e))
+	     (if (fst ,V)
+		 ,V
+		 ,rest))))
+      id
+      es))
+
+(defmacro (or-fst . exprs)
+  (or-fst-expand exprs))
+
+(TEST
+ > (values->vector (or-fst (values #f 'b) (values #t 'c) (values #f 'd)))
+ #(#t c)
+ > (values->vector (or-fst (values #f 'b) (values #f 'c) (values #t 'd)))
+ #(#t d)
+ > (values->vector (or-fst (values #f 'b) (values #f 'c) (values #f 'd)))
+ #(#f d)
+ )

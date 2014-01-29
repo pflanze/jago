@@ -1,5 +1,9 @@
 ;; short identifiers
 
+(define-macro* (& . args)
+  ;; `(thunk ,@args)
+  `(lambda () ,@args))
+
 (define-macro* (defstruct . args)
   `(define-struct. ,@args))
 
